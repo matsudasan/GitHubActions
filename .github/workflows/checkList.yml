@@ -2,8 +2,9 @@ name: Add Pull Request Checklist
 
 on:
   pull_request:
-    types:
-      - opened
+    branches:
+      - main
+    types: [opened]
 
 jobs:
   add_checklist:
@@ -16,6 +17,7 @@ jobs:
     - name: Add checklist to pull request
       run: |
         checklist="## チェックリスト\n- [ ] API側の修正がある\n  - [ ] マイグレーションが必要\n- [ ] リロードが必須\n- [ ] 外部サービスのデプロイや修正がある\n- [ ] 環境変数の設定が必要"
-        echo "$checklist" >> $GITHUB_WORKSPACE/$GITHUB_REPOSITORY_PATH
+        echo "$checklist" > $GITHUB_WORKSPACE/checklist.md
+        cat $GITHUB_WORKSPACE/checklist.md >> $GITHUB_EVENT_PATH
       env:
         GITHUB_REPOSITORY_PATH: ${{ github.event.pull_request.base.repo.full_name }}
