@@ -2,8 +2,9 @@ name: Add Pull Request Checklist
 
 on:
   pull_request:
-    types:
-      - opened
+    branches:
+      - main
+    types: [opened]
 
 jobs:
   add_checklist:
@@ -13,9 +14,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Add checklist to pull request
-      run: |
-        checklist="## チェックリスト\n- [ ] API側の修正がある\n  - [ ] マイグレーションが必要\n- [ ] リロードが必須\n- [ ] 外部サービスのデプロイや修正がある\n- [ ] 環境変数の設定が必要"
-        echo "$checklist" >> $GITHUB_WORKSPACE/$GITHUB_REPOSITORY_PATH
-      env:
-        GITHUB_REPOSITORY_PATH: ${{ github.event.pull_request.base.repo.full_name }}
+    - name: Create Checklist Comment
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const body ="##メンテナンス必須チェックシート\n\n- [ ] API側の修正がある\n  - [ ] マイグレーションが必要\n- [ ] リロードが必須\n- [ ] 外部サービスのデプロイや修正がある\n- [ ] 環境変数の設定が必要"
+          const params = {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.pull_request.number,
+            body
+          }
+          await github.rest.issues.createComment(params)
