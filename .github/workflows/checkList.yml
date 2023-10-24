@@ -15,9 +15,15 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Create Checklist Comment
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        checklist="**メンテナンス必須チェックシート**\n\n- [ ] API側の修正がある\n  - [ ] マイグレーションが必要\n- [ ] リロードが必須\n- [ ] 外部サービスのデプロイや修正がある\n- [ ] 環境変数の設定が必要"
-        comment_url=$(curl -X POST -s -H "Authorization: Bearer $GITHUB_TOKEN" -d "{\"body\":\"$checklist\"}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments" | jq -r .url)
-        echo "::set-output name=comment_url::$comment_url"
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const body ="##メンテナンス必須チェックシート\n\n- [ ] API側の修正がある\n  - [ ] マイグレーションが必要\n- [ ] リロードが必須\n- [ ] 外部サービスのデプロイや修正がある\n- [ ] 環境変数の設定が必要"
+          const params = {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.pull_request.number,
+            body: '${{ steps.opening_announce.outputs.message }}'
+          }
+          await github.rest.issues.createComment(params)
