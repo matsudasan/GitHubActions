@@ -14,10 +14,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Add checklist to pull request
-      run: |
-        checklist="## チェックリスト\n- [ ] API側の修正がある\n  - [ ] マイグレーションが必要\n- [ ] リロードが必須\n- [ ] 外部サービスのデプロイや修正がある\n- [ ] 環境変数の設定が必要"
-        echo "$checklist" > $GITHUB_WORKSPACE/checklist.md
-        cat $GITHUB_WORKSPACE/checklist.md >> $GITHUB_EVENT_PATH
+    - name: Create Checklist Comment
       env:
-        GITHUB_REPOSITORY_PATH: ${{ github.event.pull_request.base.repo.full_name }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        checklist="**メンテナンス必須チェックシート**\n\n- [ ] API側の修正がある\n  - [ ] マイグレーションが必要\n- [ ] リロードが必須\n- [ ] 外部サービスのデプロイや修正がある\n- [ ] 環境変数の設定が必要"
+        comment_url=$(curl -X POST -s -H "Authorization: Bearer $GITHUB_TOKEN" -d "{\"body\":\"$checklist\"}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments" | jq -r .url)
+        echo "::set-output name=comment_url::$comment_url"
